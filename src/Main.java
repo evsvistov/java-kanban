@@ -27,44 +27,60 @@ public class Main {
         taskManager.createTask(subTask2);
         epic1.addSubtask(subTask2.getId()); //добавляем сабтаск к эпику
 
-        SubTask subTask3 = new SubTask("Подзадача 3", "Описание подзадачи 3", TaskStatus.IN_PROGRESS, epic2.getId());
+        SubTask subTask3 = new SubTask("Подзадача 3", "Описание подзадачи 3", TaskStatus.DONE, epic2.getId());
         taskManager.createTask(subTask3);
         epic2.addSubtask(subTask3.getId()); //добавляем сабтаск к эпику
 
+        SubTask subTask4 = new SubTask("Подзадача 4", "Описание подзадачи 4", TaskStatus.NEW, epic2.getId());
+        taskManager.createTask(subTask4);
+        epic2.addSubtask(subTask4.getId()); //добавляем сабтаск к эпику
+
         System.out.println("Получение списка всех задач");
-        printAll(taskManager.getListOfAllTasks());
+        System.out.println((taskManager.getListOfTasks()));
+        System.out.println((taskManager.getListOfEpics()));
+        System.out.println((taskManager.getListOfSubTasks()));
 
         System.out.println("Получение по идентификатору");
+        System.out.println(taskManager.getEpicId(epic1.getId()));
         System.out.println(taskManager.getTaskId(task2.getId()));
-        System.out.println(taskManager.getTaskId(subTask3.getId()));
+        System.out.println(taskManager.getSubTasksId(subTask3.getId()));
+
+        System.out.println("Получение сабтасок эпика по ID эпика");
+        System.out.println(taskManager.getListSubTaskOfEpic(epic1.getId()));
 
         System.out.println("Обновление");
         task1.setName("new_Таска 1");
-        //taskManager.updateTask(task1);
-        System.out.println(taskManager.getTaskId(task1.getId()));
+        System.out.println(taskManager.updateTask(task1));
+        System.out.println(taskManager.updateTask(subTask1));
 
-        subTask1.setStatus(TaskStatus.DONE);
-        taskManager.updateTask(subTask1);
-        System.out.println(taskManager.getTaskId(subTask1.getId()));
-        System.out.println(taskManager.getTaskId(epic1.getId()));
+        //System.out.println(taskManager.getTaskId(subTask1.getId()));
+        //System.out.println(taskManager.getTaskId(epic1.getId()));
 
-        System.out.println("Удаление по ID");
-        taskManager.deleteTask(epic1.getId());
+        System.out.println("Удаление по ID таски");
+        taskManager.deleteTask(task1.getId());
+        System.out.println("Удаление по ID эпика");
+        taskManager.deleteEpic(epic1.getId());
+        System.out.println("Удаление по ID сабтаски");
+        taskManager.deleteSubTask(subTask4.getId());
+
+        System.out.println("Получение сабтасок эпика по ID эпика");
+        System.out.println(taskManager.getListSubTaskOfEpic(epic2.getId()));
 
         System.out.println("Получение списка всех задач");
-        printAll(taskManager.getListOfAllTasks());
+        System.out.println((taskManager.getListOfTasks()));
+        System.out.println((taskManager.getListOfEpics()));
+        System.out.println((taskManager.getListOfSubTasks()));
 
         System.out.println("Удаление всех задач");
         taskManager.deletingAllTasks();
+        taskManager.deletingAllsubTasks();
+        taskManager.deletingAllEpics();
 
         System.out.println("Получение списка всех задач");
-        printAll(taskManager.getListOfAllTasks());
+        System.out.println((taskManager.getListOfTasks()));
+        System.out.println((taskManager.getListOfEpics()));
+        System.out.println((taskManager.getListOfSubTasks()));
 
-    }
-    public static void printAll(HashMap<Integer, Task> allTasks){
-        for (HashMap.Entry<Integer, Task> entry : allTasks.entrySet()) {
-            System.out.println("ID: " + entry.getKey() + ", Задача: " + entry.getValue());
-        }
     }
 
 }
