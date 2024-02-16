@@ -145,12 +145,11 @@ public class TaskManager {
 
     //пересчёт статуса эпика
     private void updateEpicStatus(int epicId) {
-        if (!epics.get(epicId).getSubtasks().isEmpty()) {
-            Epic epic = epics.get(epicId);
+        Epic epic = epics.get(epicId);
+        if (!epic.getSubtasks().isEmpty()) {
             boolean allSubTasksNew = true;
             boolean allSubTasksDone = true;
-
-            for (int task : epics.get(epicId).getSubtasks()) {
+            for (int task : epic.getSubtasks()) {
                 SubTask subTask = subTasks.get(task);
                 if (subTask.getEpicId() == epicId) {
                     if (subTask.getStatus() != TaskStatus.NEW) {
@@ -168,9 +167,8 @@ public class TaskManager {
             } else {
                 epic.setStatus(TaskStatus.IN_PROGRESS);
             }
-
         } else {
-            epics.get(epicId).setStatus(TaskStatus.NEW);
+            epic.setStatus(TaskStatus.NEW);
         }
     }
 
