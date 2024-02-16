@@ -34,7 +34,7 @@ public class TaskManager {
     public void deletingAllsubTasks() {
         subTasks.clear();
         for (Epic epic : epics.values()) {
-            epic.getSubtasks().clear();
+            epic.deleteAllSubtask();
             updateEpicStatus(epic.getId());
         }
     }
@@ -76,32 +76,34 @@ public class TaskManager {
     }
 
     //Обновление
-    public Task updateTask(Task task) {
+    public boolean updateTask(Task task) {
         if (tasks.containsKey(task.getId())) {
             tasks.put(task.getId(), task);
+            return true;
         }
-        return task;
+        return false;
     }
 
-    public Task updateEpic(Epic epic) {
+    public boolean updateEpic(Epic epic) {
         if (epics.containsKey(epic.getId())) {
             Epic currentEpic = epics.get(epic.getId());
             currentEpic.setName(epic.getName());
             currentEpic.setDescription(epic.getDescription());
-            epics.put(epic.getId(), currentEpic);
+            return true;
         }
-        return epic;
+        return false;
     }
 
-    public Task updateSubTask(SubTask subTask) {
+    public boolean updateSubTask(SubTask subTask) {
         if (subTasks.containsKey(subTask.getId())) {
             SubTask currentSubTask = subTasks.get(subTask.getId());
             if (currentSubTask.getEpicId() == (subTask.getEpicId())) {
                 subTasks.put(subTask.getId(), subTask);
                 updateEpicStatus(subTask.getEpicId());
             }
+            return true;
         }
-        return subTask;
+        return false;
     }
 
     //Удаление по идентификатору
