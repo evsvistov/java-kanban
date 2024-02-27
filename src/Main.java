@@ -1,10 +1,8 @@
-import java.util.HashMap;
-
 public class Main {
 
     public static void main(String[] args) {
         System.out.println("Поехали!");
-        TaskManager taskManager = new TaskManager();
+        InMemoryTaskManager taskManager = new InMemoryTaskManager();
 
         //Добавляем задания для проверки и сразу создаём Задачи
         Task task1 = new Task("Таска 1", "Описание таски 1", TaskStatus.IN_PROGRESS);
@@ -35,18 +33,15 @@ public class Main {
         taskManager.createSubTask(subTask4);
         //epic2.addSubtask(subTask4.getId()); //добавляем сабтаск к эпику
 
-        System.out.println("Получение списка всех задач");
-        System.out.println((taskManager.getListOfTasks()));
-        System.out.println((taskManager.getListOfEpics()));
-        System.out.println((taskManager.getListOfSubTasks()));
+        //Получение списка всех задач
+        printAllTasks(taskManager);
 
         System.out.println("Получение по идентификатору");
         System.out.println(taskManager.getEpicId(epic1.getId()));
         System.out.println(taskManager.getTaskId(task2.getId()));
         System.out.println(taskManager.getSubTasksId(subTask3.getId()));
 
-        System.out.println("Получение сабтасок эпика по ID эпика");
-        System.out.println(taskManager.getListSubTaskOfEpic(epic1.getId()));
+        //добавить более 10 вызовов
 
         System.out.println("Обновление");
         Epic epic3 = new Epic("New Epic", "New Description");
@@ -66,24 +61,41 @@ public class Main {
         System.out.println("Удаление по ID сабтаски");
         taskManager.deleteSubTask(subTask4.getId());
 
-        System.out.println("Получение сабтасок эпика по ID эпика");
-        System.out.println(taskManager.getListSubTaskOfEpic(epic2.getId()));
-
-        System.out.println("Получение списка всех задач");
-        System.out.println((taskManager.getListOfTasks()));
-        System.out.println((taskManager.getListOfEpics()));
-        System.out.println((taskManager.getListOfSubTasks()));
+        //Получение списка всех задач
+        printAllTasks(taskManager);
 
         System.out.println("Удаление всех задач");
         //taskManager.deletingAllTasks();
         taskManager.deletingAllsubTasks();
         //taskManager.deletingAllEpics();
 
-        System.out.println("Получение списка всех задач");
-        System.out.println((taskManager.getListOfTasks()));
-        System.out.println((taskManager.getListOfEpics()));
-        System.out.println((taskManager.getListOfSubTasks()));
+        //Получение списка всех задач
+        printAllTasks(taskManager);
 
+    }
+
+    private static void printAllTasks(TaskManager manager) {
+        System.out.println("Задачи:");
+        for (Task task : manager.getListOfTasks()) {
+            System.out.println(task);
+        }
+        System.out.println("Эпики:");
+        for (Task epic : manager.getListOfEpics()) {
+            System.out.println(epic);
+
+            for (Task task : manager.getListSubTaskOfEpic(epic.getId())) {
+                System.out.println("--> " + task);
+            }
+        }
+        System.out.println("Подзадачи:");
+        for (Task subtask : manager.getListOfSubTasks()) {
+            System.out.println(subtask);
+        }
+
+        System.out.println("История:");
+        for (Task task : manager.getHistory()) {
+            System.out.println(task);
+        }
     }
 
 }
