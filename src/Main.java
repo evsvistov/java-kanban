@@ -47,10 +47,10 @@ public class Main {
         //добавить более 10 вызовов
 
         System.out.println("Обновление");
-        Epic epic3 = new Epic("New Task.Epic", "New Description");
+        Epic epic3 = new Epic("New Epic", "New Description");
         epic3.setId(epic2.getId());
         System.out.println(taskManager.updateEpic(epic3));
-        SubTask subTask5 = new SubTask("New Task.SubTask", "New Description", TaskStatus.DONE, epic2.getId());
+        SubTask subTask5 = new SubTask("New SubTask", "New Description", TaskStatus.DONE, epic2.getId());
         subTask5.setId(subTask3.getId());
         System.out.println(taskManager.updateSubTask(subTask5));
 
