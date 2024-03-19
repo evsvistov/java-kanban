@@ -14,8 +14,8 @@ public class Main {
         // Создание эпика с тремя подзадачами
         Epic epic1 = taskManager.createEpic(new Epic("Epic 1", "Epic 1 Description"));
         SubTask subTask1 = taskManager.createSubTask(new SubTask("SubTask 1", "SubTask 1 Description", TaskStatus.NEW, epic1.getId()));
-        SubTask subTask2 = taskManager.createSubTask(new SubTask("SubTask 2", "SubTask 2 Description", TaskStatus.NEW, epic1.getId()));
-        SubTask subTask3 = taskManager.createSubTask(new SubTask("SubTask 3", "SubTask 3 Description", TaskStatus.NEW, epic1.getId()));
+        SubTask subTask2 = taskManager.createSubTask(new SubTask("SubTask 2", "SubTask 2 Description", TaskStatus.IN_PROGRESS, epic1.getId()));
+        SubTask subTask3 = taskManager.createSubTask(new SubTask("SubTask 3", "SubTask 3 Description", TaskStatus.DONE, epic1.getId()));
 
         // Создание эпика без подзадач
         Epic epic2 = taskManager.createEpic(new Epic("Epic 2", "Epic 2 Description"));
