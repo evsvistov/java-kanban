@@ -38,17 +38,29 @@ public class InMemoryTaskManager implements TaskManager {
     //Удаление всех задач
     @Override
     public void deletingAllTasks() {
+        for (int id : tasks.keySet()) {
+            historyManager.remove(id);
+        }
         tasks.clear();
     }
 
     @Override
     public void deletingAllEpics() {
+        for(Epic epic : epics.values()){
+            historyManager.remove(epic.getId());
+            for (int idSubTask : epic.getSubtasks()){
+                historyManager.remove(idSubTask);
+            }
+        }
         epics.clear();
         subTasks.clear();
     }
 
     @Override
     public void deletingAllsubTasks() {
+        for(int idSubTask : subTasks.keySet()){
+            historyManager.remove(idSubTask);
+        }
         subTasks.clear();
         for (Epic epic : epics.values()) {
             epic.deleteAllSubtask();
@@ -148,6 +160,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void deleteTask(int id) {
         tasks.remove(id);
+        historyManager.remove(id);
     }
 
     @Override
@@ -156,9 +169,11 @@ public class InMemoryTaskManager implements TaskManager {
         if (!epic.getSubtasks().isEmpty()) {
             for (int task : epic.getSubtasks()) {
                 subTasks.remove(task);
+                historyManager.remove(task);
             }
         }
         epics.remove(id);
+        historyManager.remove(id);
     }
 
     @Override
@@ -167,6 +182,7 @@ public class InMemoryTaskManager implements TaskManager {
         Epic epic = epics.get(subTask.getEpicId());
         epic.deleteSubtaskId(id);
         subTasks.remove(id);
+        historyManager.remove(id);
         updateEpicStatus(subTask.getEpicId());
     }
 
@@ -183,14 +199,12 @@ public class InMemoryTaskManager implements TaskManager {
         return subTasksOfEpic;
     }
 
-    @Override
-    public int generateTaskId() {
+    private int generateTaskId() {
         return taskIdCounter++;
     }
 
     //пересчёт статуса эпика
-    @Override
-    public void updateEpicStatus(int epicId) {
+    private void updateEpicStatus(int epicId) {
         Epic epic = epics.get(epicId);
         if (!epic.getSubtasks().isEmpty()) {
             boolean allSubTasksNew = true;

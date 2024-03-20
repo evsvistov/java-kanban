@@ -46,7 +46,4 @@ public interface TaskManager {
 
     List<SubTask> getListSubTaskOfEpic(int epicId);
 
-    int generateTaskId();
-
-    void updateEpicStatus(int epicId);
 }
