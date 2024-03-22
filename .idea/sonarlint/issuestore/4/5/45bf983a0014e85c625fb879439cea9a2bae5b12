@@ -1,0 +1,8 @@
+
+{	java:S120"ZRename this package name to match the regular expression '^[a-z_]+(\.[a-z_][a-z0-9_]*)*$'.(‰á¦•ıÿÿÿÿ8Ÿ­‰¨å1
+\
+java:S1854&":Remove this useless assignment to local variable "taskId".(èõ¨íúÿÿÿÿ8ô²øæ1
+X
+java:S1854*";Remove this useless assignment to local variable "newNode".(ù×¸£8õ²øæ1
+]
+java:S1854Q";Remove this useless assignment to local variable "current".(òóÖ˜ÿÿÿÿÿ8ƒ³øæ1
