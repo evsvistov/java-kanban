@@ -1,5 +1,7 @@
 package task;
 
+import enums.TaskStatus;
+
 import java.util.Objects;
 
 public class SubTask extends Task {

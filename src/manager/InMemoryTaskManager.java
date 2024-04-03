@@ -1,10 +1,9 @@
 package manager;
 
+import enums.TaskStatus;
 import task.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class InMemoryTaskManager implements TaskManager {
 
@@ -79,7 +78,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public Task getEpicId(int id) {
+    public Epic getEpicId(int id) {
         Epic task = epics.get(id);
         if (task != null) {
             historyManager.add(task);
@@ -88,7 +87,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public Task getSubTasksId(int id) {
+    public SubTask getSubTasksId(int id) {
         SubTask task = subTasks.get(id);
         if (task != null) {
             historyManager.add(task);

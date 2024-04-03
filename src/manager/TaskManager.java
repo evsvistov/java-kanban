@@ -22,9 +22,9 @@ public interface TaskManager {
 
     Task getTaskId(int id);
 
-    Task getEpicId(int id);
+    Epic getEpicId(int id);
 
-    Task getSubTasksId(int id);
+    SubTask getSubTasksId(int id);
 
     Task createTask(Task task);
 
