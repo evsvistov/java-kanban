@@ -1,5 +1,6 @@
-import Manager.*;
-import Task.*;
+import enums.TaskStatus;
+import manager.*;
+import task.*;
 
 public class Main {
 
