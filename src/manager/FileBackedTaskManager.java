@@ -25,6 +25,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         try {
             String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
             String[] lines = content.split("\n");
+            int maxIdInFile = getMaxIdInFile(lines);
+            fileBackedTaskManager.setStartGenerateTaskId(maxIdInFile + 1);
             boolean isHistory = false;
             for (int i = 1; i < lines.length; i++) {
                 if (lines[i].isBlank()) {
@@ -32,23 +34,25 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                     continue;
                 }
                 if (!isHistory) {
-                    Task task = fromString(lines[i]);
-                    if (task == null) {
-                        throw new ManagerLoadException("Произошла ошибка во время парсинга строки из файла.");
-                    }
+                    fromString(lines[i]);
                 } else {
                     List<Integer> historyList = historyFromString(lines[i]);
-                    Task task;
-                    if (!historyList.isEmpty()) {
-                        for (Integer taskId : historyList) {
-                            task = getTaskId(taskId);
-                            task = getEpicId(taskId);
-                            task = getSubTasksId(taskId);
-                            if (task != null) {
-                                fileBackedTaskManager.getHistoryManager().add(task);
-                            }
+                    for (Integer taskId : historyList) {
+                        if (tasks.containsKey(taskId)) {
+                            historyManager.add(tasks.get(taskId));
+                        } else if (epics.containsKey(taskId)) {
+                            historyManager.add(epics.get(taskId));
+                        } else if (subTasks.containsKey(taskId)) {
+                            historyManager.add(subTasks.get(taskId));
                         }
                     }
+                }
+            }
+            for (SubTask subTask : subTasks.values()) {
+                int epicId = subTask.getEpicId();
+                Epic epic = epics.get(epicId);
+                if (epic != null) {
+                    epic.addSubtask(subTask.getId());
                 }
             }
         } catch (IOException e) {
@@ -59,26 +63,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     public List<Task> getHistoryManager() {
         return super.getHistory();
-    }
-
-    public static String historyToString(List<Task> history) {
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < history.size(); i++) {
-            builder.append(history.get(i).getId());
-            if (i < history.size() - 1) {
-                builder.append(", ");
-            }
-        }
-        return builder.toString();
-    }
-
-    public static List<Integer> historyFromString(String value) {
-        List<Integer> historyIds = new ArrayList<>();
-        String[] idTasks = value.split(", ");
-        for (String id : idTasks) {
-            historyIds.add(Integer.parseInt(id));
-        }
-        return historyIds;
     }
 
     //Удаление всех задач
@@ -117,52 +101,58 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     @Override
     public SubTask getSubTasksId(int id) {
-        SubTask task = super.getSubTasksId(id);
+        SubTask subTask = super.getSubTasksId(id);
         save();
-        return task;
+        return subTask;
     }
 
     //создание задач
     @Override
     public Task createTask(Task task) {
-        super.createTask(task);
+        Task createdTask = super.createTask(task);
         save();
-        return task;
+        return createdTask;
     }
 
     @Override
     public Epic createEpic(Epic epic) {
-        super.createEpic(epic);
+        Epic createdEpic = super.createEpic(epic);
         save();
-        return epic;
+        return createdEpic;
     }
 
     @Override
     public SubTask createSubTask(SubTask subTask) {
-        super.createSubTask(subTask);
+        SubTask createdSubTask = super.createSubTask(subTask);
         save();
-        return subTask;
+        return createdSubTask;
     }
 
     //Обновление
     @Override
     public boolean updateTask(Task task) {
         boolean isUpdateTask = super.updateTask(task);
-        save();
+        if (isUpdateTask) {
+            save();
+        }
         return isUpdateTask;
     }
 
     @Override
     public boolean updateEpic(Epic epic) {
         boolean isUpdateEpic = super.updateEpic(epic);
-        save();
+        if (isUpdateEpic) {
+            save();
+        }
         return isUpdateEpic;
     }
 
     @Override
     public boolean updateSubTask(SubTask subTask) {
         boolean isUpdateSubTask = super.updateSubTask(subTask);
-        save();
+        if (isUpdateSubTask) {
+            save();
+        }
         return isUpdateSubTask;
     }
 
@@ -185,6 +175,26 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         save();
     }
 
+    private static String historyToString(List<Task> history) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < history.size(); i++) {
+            builder.append(history.get(i).getId());
+            if (i < history.size() - 1) {
+                builder.append(", ");
+            }
+        }
+        return builder.toString();
+    }
+
+    private static List<Integer> historyFromString(String value) {
+        List<Integer> historyIds = new ArrayList<>();
+        String[] idTasks = value.split(", ");
+        for (String id : idTasks) {
+            historyIds.add(Integer.parseInt(id));
+        }
+        return historyIds;
+    }
+
     private void save() {
         List<Task> allTask = new ArrayList<>();
         allTask.addAll(getListOfTasks());
@@ -203,41 +213,59 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                         task instanceof SubTask ? ((SubTask) task).getEpicId() : "")
                 );
             }
-            fileWriter.write("\n" + historyToString(getHistory()));
+            if (!getHistory().isEmpty()) {
+                fileWriter.write("\n" + historyToString(getHistory()));
+            }
         } catch (IOException e) {
             throw new ManagerSaveException("Произошла ошибка во время записи в файл.", e);
         }
     }
 
-    private Task fromString(String value) {
-        Task task;
-        String[] parts = value.split(",");
-        if (parts.length < 4) {
-            throw new IllegalArgumentException("Неверный формат задачи");
+    private void fromString(String value) {
+        try {
+            String[] parts = value.split(",");
+            if (parts.length < 4) {
+                throw new IllegalArgumentException("Неверный формат задачи");
+            }
+            int id = Integer.parseInt(parts[0]);
+            String type = parts[1];
+            String name = parts[2];
+            TaskStatus status = TaskStatus.valueOf(parts[3]);
+            String description = parts.length > 4 ? parts[4] : "";
+            switch (type) {
+                case "TASK":
+                    Task task = createTask(new Task(name, description, status));
+                    tasks.put(id, task);
+                    break;
+                case "EPIC":
+                    Epic epic = createEpic(new Epic(name, description));
+                    epic.setStatus(status);
+                    epics.put(id, epic);
+                    break;
+                case "SUBTASK":
+                    int epicId = parts.length > 5 ? Integer.parseInt(parts[5]) : 0;
+                    SubTask subTask = createSubTask(new SubTask(name, description, status, epicId));
+                    subTasks.put(id, subTask);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Тип не существует: " + type);
+            }
+        } catch (Exception e) {
+            throw new ManagerLoadException("Произошла ошибка во время парсинга строки из файла.");
         }
-        int id = Integer.parseInt(parts[0]);
-        String type = parts[1];
-        String name = parts[2];
-        TaskStatus status = TaskStatus.valueOf(parts[3]);
-        String description = parts.length > 4 ? parts[4] : "";
-        Integer epicId = parts.length > 5 ? Integer.valueOf(parts[5]) : null;
-        switch (type) {
-            case "TASK":
-                task = createTask(new Task(name, description, status));
-                task.setId(id);
+    }
+
+    private int getMaxIdInFile(String[] lines) {
+        int maxId = 1;
+        for (int i = 1; i < lines.length; i++) {
+            if (lines[i].isBlank()) {
                 break;
-            case "EPIC":
-                task = createEpic(new Epic(name, description));
-                task.setId(id);
-                break;
-            case "SUBTASK":
-                task = createSubTask(new SubTask(name, description, status, epicId));
-                task.setId(id);
-                break;
-            default:
-                throw new IllegalArgumentException("Тип не существует: " + type);
+            }
+            String[] parts = lines[i].split(",");
+            int id = Integer.parseInt(parts[0]);
+            maxId = Math.max(maxId, id);
         }
-        return task;
+        return maxId;
     }
 
     private TaskType getTaskType(Task task) {

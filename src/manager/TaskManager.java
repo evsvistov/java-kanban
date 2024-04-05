@@ -10,9 +10,9 @@ public interface TaskManager {
 
     List<Task> getListOfTasks();
 
-    List<Task> getListOfEpics();
+    List<Epic> getListOfEpics();
 
-    List<Task> getListOfSubTasks();
+    List<SubTask> getListOfSubTasks();
 
     void deletingAllTasks();
 

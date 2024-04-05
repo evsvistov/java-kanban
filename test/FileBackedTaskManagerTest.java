@@ -56,7 +56,6 @@ public class FileBackedTaskManagerTest {
 
     @Test
     void testLoadCsv() {
-
         String resourceDirectoryPath = "test/resources";
         File tempFileExport = new File(resourceDirectoryPath, "export.csv");
         File tempFileImport = new File(resourceDirectoryPath, "import.csv");
@@ -70,15 +69,25 @@ public class FileBackedTaskManagerTest {
         FileBackedTaskManager fileBackedTaskManager = new FileBackedTaskManager(tempFileImport);
         fileBackedTaskManager.loadFromFile(tempFileImport);
 
-        List<ArrayList<Task>> loadedTasks = new ArrayList<>();
-        loadedTasks.add(fileBackedTaskManager.getListOfTasks());
-        loadedTasks.add(fileBackedTaskManager.getListOfEpics());
-        loadedTasks.add(fileBackedTaskManager.getListOfSubTasks());
+        List<Task> loadedTasks = new ArrayList<>(fileBackedTaskManager.getListOfTasks());
+        List<Epic> loadedEpics = new ArrayList<>(fileBackedTaskManager.getListOfEpics());
+        List<SubTask> loadedSubTasks = new ArrayList<>(fileBackedTaskManager.getListOfSubTasks());
 
         List<Task> loadedHistoryTasks = fileBackedTaskManager.getHistory();
 
-        Assertions.assertEquals(3, loadedTasks.size(), "Количество загруженных задач не соответствует ожидаемому");
-        Assertions.assertEquals(2, loadedHistoryTasks.size(), "Количество загруженных задач в историю не соответствует ожидаемому");
+        int expectedTasksCount = 1;
+        int expectedEpicsCount = 1;
+        int expectedSubTasksCount = 1;
+        int expectedHistoryCount = 2;
+
+        Assertions.assertEquals(expectedTasksCount, loadedTasks.size(),
+                "Количество загруженных задач не соответствует ожидаемому");
+        Assertions.assertEquals(expectedEpicsCount, loadedEpics.size(),
+                "Количество загруженных эпиков не соответствует ожидаемому");
+        Assertions.assertEquals(expectedSubTasksCount, loadedSubTasks.size(),
+                "Количество загруженных подзадач не соответствует ожидаемому");
+        Assertions.assertEquals(expectedHistoryCount, loadedHistoryTasks.size(),
+                "Количество загруженных задач в историю не соответствует ожидаемому");
     }
 
 }

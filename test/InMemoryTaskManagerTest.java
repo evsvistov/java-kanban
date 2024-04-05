@@ -106,7 +106,7 @@ class InMemoryTaskManagerTest {
         assertNotNull(savedEpic, "Эпики не найдена.");
         assertEquals(epic, savedEpic, "Эпики не совпадают.");
 
-        final List<Task> epics = taskManager.getListOfEpics();
+        final List<Epic> epics = taskManager.getListOfEpics();
 
         assertNotNull(epics, "Эпики не возвращаются.");
         assertEquals(1, epics.size(), "Неверное количество эпиков.");
@@ -124,7 +124,7 @@ class InMemoryTaskManagerTest {
         assertNotNull(savedSubTask, "Сабтаска не найдена.");
         assertEquals(subTask, savedSubTask, "Сабтаски не совпадают.");
 
-        final List<Task> subTasks = taskManager.getListOfSubTasks();
+        final List<SubTask> subTasks = taskManager.getListOfSubTasks();
 
         assertNotNull(subTasks, "Сабтаски не возвращаются.");
         assertEquals(1, subTasks.size(), "Неверное количество сабтасков.");

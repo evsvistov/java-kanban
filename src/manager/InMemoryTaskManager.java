@@ -8,15 +8,16 @@ import java.util.*;
 public class InMemoryTaskManager implements TaskManager {
 
     private int taskIdCounter = 1;
-    private final HashMap<Integer, Task> tasks = new HashMap<>();
-    private final HashMap<Integer, SubTask> subTasks = new HashMap<>();
-    private final HashMap<Integer, Epic> epics = new HashMap<>();
-    private final HistoryManager historyManager = Managers.getDefaultHistory();
+    protected final HashMap<Integer, Task> tasks = new HashMap<>();
+    protected final HashMap<Integer, SubTask> subTasks = new HashMap<>();
+    protected final HashMap<Integer, Epic> epics = new HashMap<>();
+    protected final HistoryManager historyManager = Managers.getDefaultHistory();
 
     @Override
     public List<Task> getHistory() {
         return historyManager.getHistory();
     }
+
 
     //Получение списка всех задач
     @Override
@@ -25,12 +26,12 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public ArrayList<Task> getListOfEpics() {
+    public ArrayList<Epic> getListOfEpics() {
         return new ArrayList<>(epics.values());
     }
 
     @Override
-    public ArrayList<Task> getListOfSubTasks() {
+    public ArrayList<SubTask> getListOfSubTasks() {
         return new ArrayList<>(subTasks.values());
     }
 
@@ -196,6 +197,10 @@ public class InMemoryTaskManager implements TaskManager {
             }
         }
         return subTasksOfEpic;
+    }
+
+    protected void setStartGenerateTaskId(int taskIdCounter) {
+        this.taskIdCounter = taskIdCounter;
     }
 
     private int generateTaskId() {
