@@ -1,6 +1,7 @@
 import enums.TaskStatus;
 import exceptions.ManagerLoadException;
 import manager.*;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,16 +28,23 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager>{
     @BeforeEach
     public void setUp() {
         super.setUp();
+
         String resourceDirectoryPath = "test/resources";
         File tempFileExport = new File(resourceDirectoryPath, "export.csv");
-        File tempFileImport = new File(resourceDirectoryPath, "import.csv");
-
+        tempFileImport = new File(resourceDirectoryPath, "import.csv");
         try {
             Files.copy(tempFileExport.toPath(), tempFileImport.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
+
+    @AfterEach
+    public void tearDown() {
+        // Удаляем временный файл после каждого теста
+        tempFileImport.delete();
+    }
+
     @Test
     void testSaveCsvEmptyAndDeletingCSV() {
         String resourceDirectoryPath = "test/resources";
@@ -72,6 +80,9 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager>{
 
     @Test
     void testLoadCsv() {
+        //подготовим файл
+        testSaveCsv();
+
         String resourceDirectoryPath = "test/resources";
         File tempFileExport = new File(resourceDirectoryPath, "export.csv");
         File tempFileImport = new File(resourceDirectoryPath, "import.csv");
