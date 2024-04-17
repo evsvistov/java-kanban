@@ -5,19 +5,25 @@ import task.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class InMemoryTaskManagerTest {
+class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 
     private HistoryManager historyManager;
-    private InMemoryTaskManager taskManager;
 
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         historyManager = Managers.getDefaultHistory();
-        taskManager = new InMemoryTaskManager();
+        super.setUp();;
+    }
+
+    @Override
+    protected InMemoryTaskManager createTaskManager() {
+        return new InMemoryTaskManager();
     }
 
     //проверьте, что экземпляры класса Task равны друг другу, если равен их id
@@ -32,18 +38,26 @@ class InMemoryTaskManagerTest {
     @Test
     void tasksEqualityBasedOnId() {
         // Создаем и добавляем задачи разных типов в менеджер задач
-        Task task1 = taskManager.createTask(new Task("Task 1", "Task 1 Description", TaskStatus.NEW));
+        ZonedDateTime fixedTime = ZonedDateTime.now();
+
+        Task task1 = taskManager.createTask(new Task("Task 1", "Task 1 Description", TaskStatus.NEW, fixedTime.plusHours(1), 5));
         Epic epic1 = taskManager.createEpic(new Epic("Epic 1", "Epic 1 Description"));
-        SubTask subTask1 = taskManager.createSubTask(new SubTask("SubTask 1", "SubTask 1 Description", TaskStatus.NEW, epic1.getId()));
+        SubTask subTask1 = new SubTask("SubTask 1", "SubTask 1 Description", TaskStatus.DONE, epic1.getId(), fixedTime.plusHours(10), 20);
+        subTask1 = taskManager.createSubTask(subTask1);
 
         Task task2 = new Task(task1.getName(), task1.getDescription(), task1.getStatus());
         task2.setId(task1.getId());
+        task2.setStartTime(fixedTime.plusHours(1));
+        task2.setDuration(Duration.ofMinutes(5));
 
         Epic epic2 = new Epic(epic1.getName(), epic1.getDescription());
         epic2.setId(epic1.getId());
+        epic2.setStatus(epic1.getStatus());
 
-        SubTask subTask2 = new SubTask(subTask1.getName(), subTask1.getDescription(), subTask1.getStatus(), subTask1.getEpicId());
+        SubTask subTask2 = new SubTask(subTask1.getName(), subTask1.getDescription(), subTask1.getStatus(), subTask1.getEpicId(), fixedTime.plusHours(10), 20);
         subTask2.setId(subTask1.getId());
+        epic2.setStartTime(fixedTime.plusHours(10));
+        epic2.setDuration(Duration.ofMinutes(20));
         epic2.addSubtask(subTask2.getId());
 
         assertEquals(task1, task2, "Задачи с одинаковым идентификатором должны быть равными");
@@ -117,7 +131,7 @@ class InMemoryTaskManagerTest {
     void createSubTask() {
         Epic epic = taskManager.createEpic(new Epic("Epic 1", "Epic 1 Description"));
         SubTask subTask = taskManager.createSubTask(new SubTask("SubTask 1", "SubTask 1 Description",
-                TaskStatus.NEW, epic.getId()));
+                TaskStatus.NEW, epic.getId(), ZonedDateTime.now(), 30));
 
         final Task savedSubTask = taskManager.getSubTasksId(subTask.getId());
 
@@ -134,8 +148,10 @@ class InMemoryTaskManagerTest {
     //проверьте, что задачи с заданным id и сгенерированным id не конфликтуют внутри менеджера;
     @Test
     void taskIdsDoNotConflict() {
-        Task firstTask = taskManager.createTask(new Task("Task 1", "Task 1 Description", TaskStatus.NEW));
-        Task secondTask = taskManager.createTask(new Task("Task 2", "Task 2 Description", TaskStatus.NEW));
+        Task firstTask = taskManager.createTask(new Task("Task 1", "Task 1 Description", TaskStatus.NEW,
+                ZonedDateTime.now(), 15));
+        Task secondTask = taskManager.createTask(new Task("Task 2", "Task 2 Description", TaskStatus.NEW,
+                ZonedDateTime.now().plusHours(1), 5));
 
         assertNotEquals(firstTask.getId(), secondTask.getId(), "ID задач конфликтуют");
 
@@ -161,8 +177,10 @@ class InMemoryTaskManagerTest {
     //проверка добавления в историю
     @Test
     void addHistory() {
-        Task task1 = taskManager.createTask(new Task("Task 1", "Task 1 Description", TaskStatus.NEW));
-        Task task2 = taskManager.createTask(new Task("Task 2", "Task 2 Description", TaskStatus.NEW));
+        Task task1 = taskManager.createTask(new Task("Task 1", "Task 1 Description", TaskStatus.NEW,
+                ZonedDateTime.now().plusHours(1), 10));
+        Task task2 = taskManager.createTask(new Task("Task 2", "Task 2 Description", TaskStatus.NEW,
+                ZonedDateTime.now().plusHours(2), 10));
         taskManager.getTaskId(task1.getId());
         taskManager.getTaskId(task2.getId());
 
@@ -174,7 +192,8 @@ class InMemoryTaskManagerTest {
     //проверка удаления из истории
     @Test
     void removeHistoryTask() {
-        Task task = taskManager.createTask(new Task("Task 1", "Task 1 Description", TaskStatus.NEW));
+        Task task = taskManager.createTask(new Task("Task 1", "Task 1 Description", TaskStatus.NEW,
+                ZonedDateTime.now().plusHours(1), 10));
         taskManager.getTaskId(task.getId());
 
         taskManager.deleteTask(task.getId());
@@ -187,7 +206,7 @@ class InMemoryTaskManagerTest {
     void removeHistorySubTask() {
         Epic epic = taskManager.createEpic(new Epic("Epic 1", "Epic 1 Description"));
         SubTask subTask = taskManager.createSubTask(new SubTask("SubTask 1", "SubTask 1 Description",
-                TaskStatus.NEW, epic.getId()));
+                TaskStatus.NEW, epic.getId(), ZonedDateTime.now().plusHours(1), 10));
 
         taskManager.getEpicId(epic.getId());
         taskManager.getSubTasksId(subTask.getId());
@@ -201,7 +220,7 @@ class InMemoryTaskManagerTest {
     void removeHistoryEpic() {
         Epic epic = taskManager.createEpic(new Epic("Epic 1", "Epic 1 Description"));
         SubTask subTask = taskManager.createSubTask(new SubTask("SubTask 1", "SubTask 1 Description",
-                TaskStatus.NEW, epic.getId()));
+                TaskStatus.NEW, epic.getId(), ZonedDateTime.now().plusHours(1), 10));
 
         taskManager.getEpicId(epic.getId());
         taskManager.getSubTasksId(subTask.getId());
@@ -215,7 +234,8 @@ class InMemoryTaskManagerTest {
     //изменение задач через сеттеры
     @Test
     void changingTasksSetters() {
-        Task task = taskManager.createTask(new Task("Task 1", "Task 1 Description", TaskStatus.NEW));
+        Task task = taskManager.createTask(new Task("Task 1", "Task 1 Description", TaskStatus.NEW,
+                ZonedDateTime.now().plusHours(1), 10));
         task.setName("Task 1 Updated Name");
 
         taskManager.updateTask(task);

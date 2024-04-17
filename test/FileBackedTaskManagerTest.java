@@ -1,6 +1,8 @@
 import enums.TaskStatus;
+import exceptions.ManagerLoadException;
 import manager.*;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import task.Epic;
 import task.SubTask;
@@ -12,14 +14,29 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class FileBackedTaskManagerTest {
+class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager>{
 
+    File tempFileImport;
+
+    @BeforeEach
+    public void setUp() {
+        super.setUp();
+        String resourceDirectoryPath = "test/resources";
+        File tempFileExport = new File(resourceDirectoryPath, "export.csv");
+        File tempFileImport = new File(resourceDirectoryPath, "import.csv");
+
+        try {
+            Files.copy(tempFileExport.toPath(), tempFileImport.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
     @Test
     void testSaveCsvEmptyAndDeletingCSV() {
         String resourceDirectoryPath = "test/resources";
@@ -39,14 +56,13 @@ public class FileBackedTaskManagerTest {
 
     @Test
     void testSaveCsv() {
-
         String resourceDirectoryPath = "test/resources";
         File tempFile = new File(resourceDirectoryPath, "export.csv");
         FileBackedTaskManager fileBackedTaskManager = new FileBackedTaskManager(tempFile);
 
-        Task task1 = fileBackedTaskManager.createTask(new Task("Task1", "Description task1", TaskStatus.NEW));
+        Task task1 = fileBackedTaskManager.createTask(new Task("Task1", "Description task1", TaskStatus.NEW, ZonedDateTime.now().plusHours(1), 10));
         Epic epic1 = fileBackedTaskManager.createEpic(new Epic("Epic2", "Description epic2"));
-        SubTask subTask1 = fileBackedTaskManager.createSubTask(new SubTask("Sub Task2", "Description sub task3", TaskStatus.NEW, epic1.getId()));
+        SubTask subTask1 = fileBackedTaskManager.createSubTask(new SubTask("Sub Task2", "Description sub task3", TaskStatus.DONE, epic1.getId(), ZonedDateTime.now().plusHours(2), 20));
 
         fileBackedTaskManager.getEpicId(epic1.getId());
         fileBackedTaskManager.getSubTasksId(subTask1.getId());
@@ -88,6 +104,39 @@ public class FileBackedTaskManagerTest {
                 "Количество загруженных подзадач не соответствует ожидаемому");
         Assertions.assertEquals(expectedHistoryCount, loadedHistoryTasks.size(),
                 "Количество загруженных задач в историю не соответствует ожидаемому");
+    }
+
+    @Override
+    protected FileBackedTaskManager createTaskManager() {
+        String resourceDirectoryPath = "test/resources";
+        File tempFileExport = new File(resourceDirectoryPath, "export.csv");
+        File tempFileImport = new File(resourceDirectoryPath, "import.csv");
+
+        try {
+            Files.copy(tempFileExport.toPath(), tempFileImport.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return new FileBackedTaskManager(tempFileImport);
+    }
+
+    @Test
+    void shouldThrowWhenFileNotFound() {
+        File file = new File("nonefile.txt");
+        assertThrows(ManagerLoadException.class, () -> {
+            FileBackedTaskManager manager = new FileBackedTaskManager(file);
+            manager.loadFromFile(file);
+        }, "Должно возникнуть исключение ManagerLoadException, так как файл не существует");
+    }
+
+    @Test
+    void shouldNotThrowWhenFileExists() {
+        String resourceDirectoryPath = "test/resources";
+        File tempFileExport = new File(resourceDirectoryPath, "export.csv");
+        assertDoesNotThrow(() -> {
+            FileBackedTaskManager manager = new FileBackedTaskManager(tempFileExport);
+            manager.loadFromFile(tempFileExport);
+        }, "Не должно возникать исключений, так как файл существует");
     }
 
 }
