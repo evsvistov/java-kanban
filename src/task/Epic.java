@@ -10,9 +10,10 @@ import java.util.Objects;
 public class Epic extends Task {
 
     private final ArrayList<Integer> subTasks;
+    private ZonedDateTime endTime;
 
     public Epic(String name, String description) {
-        super(name, description, TaskStatus.NEW, ZonedDateTime.now(), 0);
+        super(name, description, TaskStatus.NEW);
         this.subTasks = new ArrayList<>();
     }
 
@@ -30,6 +31,10 @@ public class Epic extends Task {
 
     public void deleteAllSubtask() {
         subTasks.clear();
+    }
+
+    public void setEndTime(ZonedDateTime endTime) {
+        this.endTime = endTime;
     }
 
     @Override

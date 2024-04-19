@@ -196,18 +196,17 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         allTask.addAll(getListOfSubTasks());
         allTask.sort(Comparator.comparingInt(Task::getId));
         try (FileWriter fileWriter = new FileWriter(file.toString(), StandardCharsets.UTF_8)) {
-            fileWriter.write("id,type,name,status,description,epic,startTime,endTime,durationMinutes\n");
+            fileWriter.write("id,type,name,status,description,epic,startTime,durationMinutes\n");
             for (Task task : allTask) {
-                fileWriter.write(String.format("%d,%s,%s,%s,%s,%s,%s,%s,%s" + "\n",
+                fileWriter.write(String.format("%d,%s,%s,%s,%s,%s,%s,%s" + "\n",
                         task.getId(),
                         getTaskType(task),
                         task.getName(),
                         task.getStatus(),
                         task.getDescription(),
                         task instanceof SubTask ? String.valueOf(((SubTask) task).getEpicId()) : "",
-                        task.getStartTime().format(Managers.formatter),
-                        task.getEndTime().format(Managers.formatter),
-                        task.getDuration()
+                        task.getStartTime() != null ? task.getStartTime().format(Managers.formatter) : "",
+                        task.getDuration() != null ? task.getDuration() : ""
                 ));
             }
             if (!getHistory().isEmpty()) {
@@ -221,8 +220,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     private void fromString(String value) {
         try {
             String[] parts = value.split(",");
-            if (parts.length < 9) {
-                throw new IllegalArgumentException("Неверный формат задачи, ожидается 9 полей, получено " + parts.length);
+            if (parts.length <= 7) {
+                throw new IllegalArgumentException("Неверный формат задачи, ожидается 7 полей, получено " + parts.length);
             }
             int id = Integer.parseInt(parts[0]);
             String type = parts[1];
@@ -230,25 +229,21 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             TaskStatus status = TaskStatus.valueOf(parts[3]);
             String description = parts[4];
             ZonedDateTime startTime = ZonedDateTime.parse(parts[6].trim(), Managers.formatter);
-            ZonedDateTime endTime = ZonedDateTime.parse(parts[7].trim(), Managers.formatter);
-            Duration durationMinutes = Duration.parse(parts[8].trim());
+            Duration durationMinutes = Duration.parse(parts[7].trim());
 
             switch (type) {
                 case "TASK":
                     Task task = createTask(new Task(name, description, status, startTime, durationMinutes.toMinutes()));
-                    task.setEndTime(endTime);
                     tasks.put(id, task);
                     break;
                 case "EPIC":
                     Epic epic = createEpic(new Epic(name, description));
                     epic.setStatus(status);
-                    epic.setEndTime(endTime);
                     epics.put(id, epic);
                     break;
                 case "SUBTASK":
                     int epicId = Integer.parseInt(parts[5]);
                     SubTask subTask = createSubTask(new SubTask(name, description, status, epicId, startTime, durationMinutes.toMinutes()));
-                    subTask.setEndTime(endTime);
                     subTasks.put(id, subTask);
                     break;
                 default:

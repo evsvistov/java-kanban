@@ -115,7 +115,6 @@ public class InMemoryTaskManager implements TaskManager {
     public Epic createEpic(Epic epic) {
         epic.setId(generateTaskId());
         epics.put(epic.getId(), epic);
-        prioritizedTasks.add(epic);
         return epic;
     }
 
@@ -139,6 +138,14 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public boolean updateTask(Task task) {
         if (tasks.containsKey(task.getId())) {
+            Task oldTask = tasks.get(task.getId());
+            prioritizedTasks.remove(oldTask);
+
+            if (prioritizedTasks.stream().anyMatch(existingTask -> taskTimeIntersection(task, existingTask))) {
+                prioritizedTasks.add(oldTask);
+                throw new TaskTimeConflictException("Обновленная задача конфликтует с существующими задачами.");
+            }
+
             tasks.put(task.getId(), task);
             return true;
         }
@@ -159,9 +166,18 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public boolean updateSubTask(SubTask subTask) {
         if (subTasks.containsKey(subTask.getId())) {
+            SubTask oldSubTask = subTasks.get(subTask.getId());
+            prioritizedTasks.remove(oldSubTask);
+
+            if (prioritizedTasks.stream().anyMatch(existingTask -> taskTimeIntersection(subTask, existingTask))) {
+                prioritizedTasks.add(oldSubTask);
+                throw new TaskTimeConflictException("Обновленная подзадача конфликтует с существующими задачами.");
+            }
+
             SubTask currentSubTask = subTasks.get(subTask.getId());
             if (currentSubTask.getEpicId() == (subTask.getEpicId())) {
                 subTasks.put(subTask.getId(), subTask);
+                prioritizedTasks.add(subTask);
                 updateEpicStatus(subTask.getEpicId());
                 updateEpicTime(subTask.getEpicId());
             }
@@ -219,12 +235,18 @@ public class InMemoryTaskManager implements TaskManager {
     public boolean taskTimeIntersection(Task task1, Task task2) {
         ZonedDateTime start1 = task1.getStartTime();
         ZonedDateTime start2 = task2.getStartTime();
-        ZonedDateTime end1 = task1.getEndTime();
-        ZonedDateTime end2 = task2.getEndTime();
-        if (start1 == null && start2 == null || end1 == null && end2 == null) {
+
+        if (start1 == null || start2 == null) {
             return false;
         }
-        return start1.isBefore(end2) && start2.isBefore(end1);
+
+        ZonedDateTime end1 = task1.getEndTime();
+        ZonedDateTime end2 = task2.getEndTime();
+
+        return (start1.isBefore(end2) || start1.equals(start2) || start1.equals(end2))
+                && (start2.isBefore(end1) || start2.equals(start1) || start2.equals(end1))
+                && (end1.isAfter(start2) || end1.equals(end2))
+                && (end2.isAfter(start1) || end2.equals(end1));
     }
 
     protected void setStartGenerateTaskId(int taskIdCounter) {
@@ -249,20 +271,18 @@ public class InMemoryTaskManager implements TaskManager {
                     .filter(Objects::nonNull)
                     .min(ZonedDateTime::compareTo);
 
-            //вычисляем общую продолжительность как сумму продолжительностей всех подзадач
-            Duration totalDuration = subTaskList.stream()
-                    .map(SubTask::getDuration)
+            //находим максимальное время начала среди всех подзадач
+            Optional<ZonedDateTime> maxEndTime = subTaskList.stream()
+                    .map(SubTask::getEndTime)
                     .filter(Objects::nonNull)
-                    .reduce(Duration::plus)
-                    .orElse(Duration.ZERO);
+                    .max(ZonedDateTime::compareTo);
+
+            //вычисляем общую продолжительность как разницу между кнчаниями макс. и мин. всех подзадач
+            Duration totalDuration = Duration.between(minStartTime.orElse(ZonedDateTime.now()), maxEndTime.orElse(ZonedDateTime.now()));
 
             epic.setStartTime(minStartTime.orElse(null));
             epic.setDuration(totalDuration);
-            if (minStartTime.isPresent()) {
-                epic.setEndTime(minStartTime.get().plus(totalDuration));
-            } else {
-                epic.setEndTime(null);
-            }
+            epic.setEndTime(maxEndTime.orElse(null));
         } else {
             epic.setStartTime(null);
             epic.setDuration(Duration.ZERO);

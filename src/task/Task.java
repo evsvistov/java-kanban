@@ -14,7 +14,6 @@ public class Task {
     private TaskStatus status;
     private Duration duration;
     private ZonedDateTime startTime;
-    private ZonedDateTime endTime;
 
     public Task(String name, String description, TaskStatus status) {
         this.name = name;
@@ -71,6 +70,9 @@ public class Task {
     }
 
     public ZonedDateTime getEndTime() {
+        if (startTime == null) {
+            return null;
+        }
         return startTime.plus(duration);
     }
 
@@ -80,10 +82,6 @@ public class Task {
 
     public void setDuration(Duration duration) {
         this.duration = duration;
-    }
-
-    public void setEndTime(ZonedDateTime endTime) {
-        this.endTime = endTime;
     }
 
     @Override

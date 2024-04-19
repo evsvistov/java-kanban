@@ -1,4 +1,6 @@
-id,type,name,status,description,epic,startTime,endTime,durationMinutes
-1,TASK,Task1,NEW,Description task1,,18.04.2024 02:46:22 YEKT,18.04.2024 02:56:22 YEKT,PT10M
-2,EPIC,Epic2,DONE,Description epic2,,18.04.2024 03:46:22 YEKT,18.04.2024 04:06:22 YEKT,PT20M
-3,SUBTASK,Sub Task2,DONE,Description sub task3,2,18.04.2024 03:46:22 YEKT,18.04.2024 04:06:22 YEKT,PT20M
+id,type,name,status,description,epic,startTime,durationMinutes
+1,TASK,Task1,NEW,Description task1,,19.04.2024 12:52:08 YEKT,PT10M
+2,EPIC,Epic2,DONE,Description epic2,,19.04.2024 13:52:08 YEKT,PT20M
+3,SUBTASK,Sub Task2,DONE,Description sub task3,2,19.04.2024 13:52:08 YEKT,PT20M
+
+2, 3
