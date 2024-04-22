@@ -2,6 +2,7 @@ package task;
 
 import enums.TaskStatus;
 
+import java.time.ZonedDateTime;
 import java.util.Objects;
 
 public class SubTask extends Task {
@@ -10,6 +11,11 @@ public class SubTask extends Task {
 
     public SubTask(String name, String description, TaskStatus status, int epicId) {
         super(name, description, status);
+        this.epicId = epicId;
+    }
+
+    public SubTask(String name, String description, TaskStatus status, int epicId, ZonedDateTime startTime, long durationMinutes) {
+        super(name, description, status, startTime, durationMinutes);
         this.epicId = epicId;
     }
 
@@ -25,15 +31,18 @@ public class SubTask extends Task {
                 ", description='" + getDescription() + '\'' +
                 ", status=" + getStatus() +
                 ", epicId='" + epicId + '\'' +
+                ", startTime='" + getStartTime() + '\'' +
+                ", durationMinutes='" + getDuration() + '\'' +
+                ", endTime='" + getEndTime() + '\'' +
                 '}';
     }
 
     @Override
-    public boolean equals(Object object) {
-        if (this == object) return true;
-        if (object == null || getClass() != object.getClass()) return false;
-        if (!super.equals(object)) return false;
-        SubTask subTask = (SubTask) object;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        SubTask subTask = (SubTask) o;
         return epicId == subTask.epicId;
     }
 

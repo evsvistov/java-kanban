@@ -3,6 +3,7 @@ package manager;
 import task.*;
 
 import java.util.List;
+import java.util.Set;
 
 public interface TaskManager {
 
@@ -46,4 +47,7 @@ public interface TaskManager {
 
     List<SubTask> getListSubTaskOfEpic(int epicId);
 
+    boolean taskTimeIntersection(Task task1, Task task2);
+
+    Set<Task> getPrioritizedTasks();
 }

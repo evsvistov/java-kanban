@@ -2,6 +2,7 @@ package task;
 
 import enums.TaskStatus;
 
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -9,10 +10,11 @@ import java.util.Objects;
 public class Epic extends Task {
 
     private final ArrayList<Integer> subTasks;
+    private ZonedDateTime endTime;
 
     public Epic(String name, String description) {
         super(name, description, TaskStatus.NEW);
-        subTasks = new ArrayList<>();
+        this.subTasks = new ArrayList<>();
     }
 
     public List<Integer> getSubtasks() {
@@ -31,6 +33,10 @@ public class Epic extends Task {
         subTasks.clear();
     }
 
+    public void setEndTime(ZonedDateTime endTime) {
+        this.endTime = endTime;
+    }
+
     @Override
     public String toString() {
         return getClass().getName() + "{" +
@@ -39,6 +45,9 @@ public class Epic extends Task {
                 ", description='" + getDescription() + '\'' +
                 ", status=" + getStatus() +
                 ", subtasks=" + subTasks +
+                ", startTime='" + getStartTime() + '\'' +
+                ", durationMinutes='" + getDuration() + '\'' +
+                ", endTime='" + getEndTime() + '\'' +
                 '}';
     }
 
@@ -54,6 +63,11 @@ public class Epic extends Task {
     @Override
     public int hashCode() {
         return Objects.hash(super.hashCode(), subTasks);
+    }
+
+    @Override
+    public ZonedDateTime getEndTime() {
+        return endTime;
     }
 }
 
