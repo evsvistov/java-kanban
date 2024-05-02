@@ -160,21 +160,27 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     //Удаление по идентификатору
     @Override
-    public void deleteTask(int id) {
-        super.deleteTask(id);
-        save();
+    public boolean deleteTask(int id) {
+        if (super.deleteTask(id)) {
+            save();
+            return true;
+        } else return false;
     }
 
     @Override
-    public void deleteEpic(int id) {
-        super.deleteEpic(id);
-        save();
+    public boolean deleteEpic(int id) {
+        if (super.deleteEpic(id)) {
+            save();
+            return true;
+        } else return false;
     }
 
     @Override
-    public void deleteSubTask(int id) {
-        super.deleteSubTask(id);
-        save();
+    public boolean deleteSubTask(int id) {
+        if (super.deleteSubTask(id)) {
+            save();
+            return true;
+        } else return false;
     }
 
     private static String historyToString(List<Task> history) {
